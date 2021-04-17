@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ClientResponse {
+public class UserResponse {
 
     @JsonProperty("id")
     private Long id;
@@ -21,7 +21,7 @@ public class ClientResponse {
     @JsonProperty("favorites")
     private Set<ProductDomain> favoriteProducts;
 
-    public ClientResponse() {
+    public UserResponse() {
     }
 
     public Long getId() {

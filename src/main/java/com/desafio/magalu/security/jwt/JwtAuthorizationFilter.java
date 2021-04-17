@@ -48,6 +48,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             }
 
             String login = JwtUtil.getLogin(token);
+            //TODO: ver aqui email
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(login);
 

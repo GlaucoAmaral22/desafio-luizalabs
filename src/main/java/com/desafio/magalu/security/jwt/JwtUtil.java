@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
+@Component
 public class JwtUtil {
     // Chave com algoritmo HS512
     // http://www.allkeysgenerator.com
@@ -39,6 +41,15 @@ public class JwtUtil {
         }
         return null;
     }
+
+    public static String getEmail(String token) {
+        Claims claims = getClaims(token);
+        if (!isNull(claims)) {
+            return claims.getSubject();
+        }
+        return null;
+    }
+
 
     public static List<GrantedAuthority> getRoles(String token) {
         Claims claims = getClaims(token);
@@ -85,6 +96,14 @@ public class JwtUtil {
         UserDetails user = getUserDetails();
         if(user != null){
             return user.getUsername();
+        }
+        return null;
+    }
+
+    public static String getAuthEmail() {
+        UserDetails user = getUserDetails();
+        if(user != null){
+            return user.getPassword();
         }
         return null;
     }

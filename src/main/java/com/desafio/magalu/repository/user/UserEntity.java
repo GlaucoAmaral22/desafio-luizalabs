@@ -1,11 +1,13 @@
 package com.desafio.magalu.repository.user;
 
+import com.desafio.magalu.repository.product.ProductEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Entity(name = "user")
 public class UserEntity implements UserDetails {
@@ -13,16 +15,24 @@ public class UserEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String login;
-    private String senha;
+    private String name;
+    private String email;
 
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinTable(
             name = "user_roles",
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")})
     private List<RoleEntity> roles;
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinTable(
+            name = "user_products",
+            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "product_id", referencedColumnName = "id")})
+    private Set<ProductEntity> favoriteProducts;
+
 
     public UserEntity() {
     }
@@ -35,20 +45,28 @@ public class UserEntity implements UserDetails {
         this.id = id;
     }
 
-    public String getLogin() {
-        return login;
+    public String getName() {
+        return name;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getSenha() {
-        return senha;
+    public String getEmail() {
+        return email;
     }
 
-    public void setSenha(String senha) {
-        this.senha = senha;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Set<ProductEntity> getFavoriteProducts() {
+        return favoriteProducts;
+    }
+
+    public void setFavoriteProducts(Set<ProductEntity> favoriteProducts) {
+        this.favoriteProducts = favoriteProducts;
     }
 
     public List<RoleEntity> getRoles() {
@@ -66,12 +84,12 @@ public class UserEntity implements UserDetails {
 
     @Override
     public String getPassword() {
-        return this.senha;
+        return this.email;
     }
 
     @Override
     public String getUsername() {
-        return this.login;
+        return this.name;
     }
 
     @Override

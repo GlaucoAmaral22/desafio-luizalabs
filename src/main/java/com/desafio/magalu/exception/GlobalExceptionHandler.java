@@ -42,6 +42,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity(erroDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(UserDoesNotMatchAuthorizationException.class)
+    public ResponseEntity erroUsersDoesNotMatch(UserDoesNotMatchAuthorizationException ex) {
+        ErroDetails erroDetails = new ErroDetails(new Date(), ex.getMessage(), "");
+        return new ResponseEntity(erroDetails, HttpStatus.BAD_REQUEST);
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         ErroDetails erroDetails = new ErroDetails(new Date(), "Validation Erro",

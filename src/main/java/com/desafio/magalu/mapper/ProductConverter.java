@@ -19,5 +19,4 @@ public interface ProductConverter {
 
     ProductEntity domainToEntity(ProductDomain productDomain);
 
-
 }

@@ -1,13 +1,14 @@
 package com.desafio.magalu.controller;
 
-import com.desafio.magalu.controller.request.ClientRequest;
+import com.desafio.magalu.controller.request.UserRequest;
 import com.desafio.magalu.controller.request.ProductRequest;
-import com.desafio.magalu.controller.response.ClientResponse;
+import com.desafio.magalu.controller.response.UserResponse;
 import com.desafio.magalu.domain.ClientDomain;
 import com.desafio.magalu.domain.ProductDomain;
-import com.desafio.magalu.mapper.ClientConverter;
+import com.desafio.magalu.domain.UserDomain;
+import com.desafio.magalu.mapper.UserConverter;
 import com.desafio.magalu.mapper.ProductConverter;
-import com.desafio.magalu.service.ClientService;
+import com.desafio.magalu.service.UserService;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,38 +16,34 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.net.URI;
 
 @RestControllerAdvice
 @RequestMapping("/api/client/")
-public class ClientController {
+public class UserController {
 
 
     @Autowired
-    public ClientController(ClientService clientService) {
-        this.clientService = clientService;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    @Autowired
-    HttpServletRequest request;
 
-    private ClientService clientService;
 
-    ClientConverter clientConverter = Mappers.getMapper(ClientConverter.class);
+    private UserService userService;
+
+    UserConverter userConverter = Mappers.getMapper(UserConverter.class);
 
     ProductConverter productConverter = Mappers.getMapper(ProductConverter.class);
 
 
     @PostMapping()
-    public ResponseEntity create(@Valid @RequestBody ClientRequest request){
+    public ResponseEntity create(@Valid @RequestBody UserRequest request){
 
-        System.out.println(this.request.getHeader("Authorization"));
+        UserDomain userDomain = userConverter.requestToDomain(request);
 
-        ClientDomain clientDomain = clientConverter.requestToDomain(request);
-
-        ClientDomain clientSaved = clientService.create(clientDomain);
+        UserDomain clientSaved = userService.create(userDomain);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(clientSaved.getId()).toUri();
 
@@ -58,31 +55,33 @@ public class ClientController {
     @Secured({"ROLE_USER"})
     public ResponseEntity read(@PathVariable("id") Long id){
 
-        ClientDomain clientDomain = clientService.read(id);
+        UserDomain clientDomain = userService.read(id);
 
-        ClientResponse clientResponse = clientConverter.domainToResponse(clientDomain);
+        UserResponse userResponse = userConverter.domainToResponse(clientDomain);
 
-        return ResponseEntity.ok(clientResponse);
+        return ResponseEntity.ok(userResponse);
 
     }
 
     @PutMapping("{id}")
     @Secured({"ROLE_USER"})
-    public ResponseEntity update(@PathVariable("id") Long id,  @RequestBody ClientRequest request) {
+    public ResponseEntity update(@PathVariable("id") Long id,  @RequestBody UserRequest request) {
+        /*
+        ClientDomain clientDomain = userConverter.requestToDomain(request);
 
-        ClientDomain clientDomain = clientConverter.requestToDomain(request);
-
-        clientDomain = clientService.update(id, clientDomain);
+        clientDomain = userService.update(id, clientDomain);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("").buildAndExpand().toUri();
 
-        return ResponseEntity.ok().location(location).build();
+         */
+
+        return ResponseEntity.ok().location(null).build();
     }
 
     @DeleteMapping("{id}")
     @Secured({"ROLE_ADMIN"})
     public ResponseEntity delete(@PathVariable("id") Long id){
-        clientService.delete(id);
+        userService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -92,7 +91,7 @@ public class ClientController {
 
         ProductDomain productDomain = productConverter.requestToDomain(request);
 
-        clientService.addProductToFavoriteList(idUser, productDomain);
+        userService.addProductToFavoriteList(idUser, productDomain);
 
         return ResponseEntity.ok().build();
     }
@@ -103,7 +102,7 @@ public class ClientController {
 
         ProductDomain productDomain = productConverter.requestToDomain(request);
 
-        clientService.removeProductOfFavoriteList(idUser, productDomain);
+        userService.removeProductOfFavoriteList(idUser, productDomain);
 
         return ResponseEntity.noContent().build();
     }

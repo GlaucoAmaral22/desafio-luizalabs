@@ -2,67 +2,86 @@ package com.desafio.magalu.service;
 
 import com.desafio.magalu.domain.ClientDomain;
 import com.desafio.magalu.domain.ProductDomain;
+import com.desafio.magalu.domain.UserDomain;
 import com.desafio.magalu.exception.ClientAlreadyExistsException;
 import com.desafio.magalu.exception.ObjectNotFoundException;
-import com.desafio.magalu.mapper.ClientConverter;
+import com.desafio.magalu.exception.UserDoesNotMatchAuthorizationException;
+import com.desafio.magalu.mapper.UserConverter;
 import com.desafio.magalu.mapper.ProductConverter;
-import com.desafio.magalu.repository.client.ClientEntity;
-import com.desafio.magalu.repository.client.ClientRepository;
-import com.desafio.magalu.repository.product.ProductEntity;
+import com.desafio.magalu.repository.user.RoleEntity;
+import com.desafio.magalu.repository.user.RoleRepository;
+import com.desafio.magalu.repository.user.UserEntity;
+import com.desafio.magalu.repository.user.UserRepository;
+import com.desafio.magalu.security.jwt.JwtUtil;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
-public class ClientService {
+public class UserService {
+
 
     @Autowired
-    public ClientService(ClientRepository clientRepository, ProductService productService) {
-        this.clientRepository = clientRepository;
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, ProductService productService, HttpServletRequest request, JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.productService = productService;
+        this.request = request;
+        this.jwtUtil = jwtUtil;
     }
 
-    ClientRepository clientRepository;
+    UserRepository userRepository;
+
+    //TODO: retirar role daqui e colocar na RoleService e fazer a logica para criar a role de usuário
+    RoleRepository roleRepository;
 
     ProductService productService;
 
-    ClientConverter clientConverter = Mappers.getMapper(ClientConverter.class);
+    HttpServletRequest request;
+
+    JwtUtil  jwtUtil;
+
+    UserConverter userConverter = Mappers.getMapper(UserConverter.class);
 
     ProductConverter productConverter = Mappers.getMapper(ProductConverter.class);
 
 
-    public ClientDomain create(ClientDomain cltDomain) {
+    public UserDomain create(UserDomain userDomain) {
 
-        Optional<ClientEntity> optClient = clientRepository.findByEmail(cltDomain.getEmail());
+        Optional<UserEntity> optClient = userRepository.findByEmail(userDomain.getEmail());
 
         if (optClient.isPresent()) {
             throw new ClientAlreadyExistsException("Email in use.");
         }
 
-        ClientEntity clientEntity = clientConverter.domainToEntity(cltDomain);
+        RoleEntity roleUser = roleRepository.findByName("ROLE_USER");
+        UserEntity userEntity = userConverter.domainToEntity(userDomain);
+        userEntity.setRoles(new ArrayList<>(Arrays.asList(roleUser)));
 
-        ClientEntity clientSaved = clientRepository.save(clientEntity);
+        UserEntity userSaved = userRepository.save(userEntity);
 
-        return clientConverter.entityToDomain(clientSaved);
+        return userConverter.entityToDomain(userSaved);
     }
 
-    public ClientDomain read(Long id) {
+    public UserDomain read(Long id) {
 
-        Optional<ClientEntity> optClient = clientRepository.findById(id);
+        Optional<UserEntity> optClient = userRepository.findById(id);
 
-        if (optClient.isPresent()) {
-            ClientDomain cltDomain = clientConverter.entityToDomain(optClient.get());
-            return cltDomain;
+        if (validUsers(id, request.getHeader("Authorization") )) {
+            UserDomain userDomain = userConverter.entityToDomain(optClient.get());
+            return userDomain;
         }
-        throw new ObjectNotFoundException("Client not found.");
+        throw new ObjectNotFoundException("User not found.");
     }
 
     public ClientDomain update(Long id, ClientDomain cltDomain) {
-
+        /*
         Optional<ClientEntity> optClient = clientRepository.findById(id);
 
         Optional<ClientEntity> optClientByEmail = clientRepository.findByEmail(cltDomain.getEmail());
@@ -78,15 +97,16 @@ public class ClientService {
             }
             throw new ObjectNotFoundException("Cliente não encontrado.");
         }
-        throw new ClientAlreadyExistsException("Email já em uso.");
+        throw new ClientAlreadyExistsException("Email já em uso.");*/
+        return null;
     }
 
     public void delete(Long id) {
-        clientRepository.deleteById(id);
+        userRepository.deleteById(id);
     }
 
     public void addProductToFavoriteList(Long idUser, ProductDomain productDomain) {
-        ProductEntity productEntity = null;
+        /*ProductEntity productEntity = null;
         Optional<ClientEntity> optClient = clientRepository.findById(idUser);
         if (optClient.isPresent()) {
             productDomain = productService.consultProduct(productDomain);
@@ -102,11 +122,11 @@ public class ClientService {
             clientRepository.save(clientEntity);
             return;
         }
-        throw new ObjectNotFoundException("Cliente não encontrado.");
+        throw new ObjectNotFoundException("Cliente não encontrado.");*/
     }
 
     public void removeProductOfFavoriteList(Long idUser, ProductDomain productDomain){
-        ClientEntity cltEntity = null;
+        /*ClientEntity cltEntity = null;
         ProductEntity productEntity = null;
         Optional<ClientEntity> optClient = clientRepository.findById(idUser);
 
@@ -121,7 +141,27 @@ public class ClientService {
             }
             return;
         }
-        throw new ObjectNotFoundException("Cliente not found.");
+        throw new ObjectNotFoundException("Cliente not found.");*/
+    }
+
+
+    public boolean validUsers(Long id,  String token){
+
+        String email = JwtUtil.getAuthEmail();
+
+        Optional<UserEntity> optUserLogged = userRepository.findByEmail(email);
+        Optional<UserEntity> optUserToDoAction = userRepository.findById(id);
+
+
+        if(optUserLogged.isPresent() && optUserToDoAction.isPresent()){
+            UserDomain userLogged = userConverter.entityToDomain(optUserLogged.get());
+            UserDomain userToDoAction = userConverter.entityToDomain(optUserToDoAction.get());
+
+            if(userLogged.getEmail().equals(userToDoAction.getEmail())){
+                return true;
+            }
+        }
+        throw new UserDoesNotMatchAuthorizationException("Users does not match in action.");
     }
 
 

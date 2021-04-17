@@ -8,16 +8,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class UserDomain {
 
-    private String login;
-    private String senha;
+    private Long id;
+    private String name;
+    private String email;
 
     // token jwt
     private String token;
 
     public static UserDomain create(UserEntity user, String token) {
         UserDomain userDomain = new UserDomain();
-        userDomain.setLogin(user.getLogin());
-        userDomain.setSenha(user.getSenha());
+        userDomain.setName(user.getName());
+        userDomain.setEmail(user.getEmail());
         userDomain.token = token;
         return userDomain;
     }
@@ -29,20 +30,28 @@ public class UserDomain {
     public UserDomain() {
     }
 
-    public String getLogin() {
-        return login;
+    public Long getId() {
+        return id;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public String getSenha() {
-        return senha;
+    public String getName() {
+        return name;
     }
 
-    public void setSenha(String senha) {
-        this.senha = senha;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getToken() {

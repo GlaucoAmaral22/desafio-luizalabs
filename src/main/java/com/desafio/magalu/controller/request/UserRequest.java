@@ -7,7 +7,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ClientRequest {
+public class UserRequest {
 
     @NotBlank(message = "Invalid Name Client")
     @JsonProperty("name")
