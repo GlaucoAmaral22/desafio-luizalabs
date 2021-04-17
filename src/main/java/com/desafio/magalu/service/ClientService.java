@@ -4,9 +4,8 @@ import com.desafio.magalu.domain.ClientDomain;
 import com.desafio.magalu.domain.ProductDomain;
 import com.desafio.magalu.exception.ClientAlreadyExistsException;
 import com.desafio.magalu.exception.ObjectNotFoundException;
-import com.desafio.magalu.integration.apiproducts.ProductService;
-import com.desafio.magalu.mapper.ClientMapper;
-import com.desafio.magalu.mapper.ProductMapper;
+import com.desafio.magalu.mapper.ClientConverter;
+import com.desafio.magalu.mapper.ProductConverter;
 import com.desafio.magalu.repository.client.ClientEntity;
 import com.desafio.magalu.repository.client.ClientRepository;
 import com.desafio.magalu.repository.product.ProductEntity;
@@ -22,14 +21,18 @@ import java.util.Set;
 public class ClientService {
 
     @Autowired
+    public ClientService(ClientRepository clientRepository, ProductService productService) {
+        this.clientRepository = clientRepository;
+        this.productService = productService;
+    }
+
     ClientRepository clientRepository;
 
-    @Autowired
     ProductService productService;
 
-    ClientMapper clientMapper = Mappers.getMapper(ClientMapper.class);
+    ClientConverter clientConverter = Mappers.getMapper(ClientConverter.class);
 
-    ProductMapper productMapper = Mappers.getMapper(ProductMapper.class);
+    ProductConverter productConverter = Mappers.getMapper(ProductConverter.class);
 
 
     public ClientDomain create(ClientDomain cltDomain) {
@@ -40,11 +43,11 @@ public class ClientService {
             throw new ClientAlreadyExistsException("Email in use.");
         }
 
-        ClientEntity clientEntity = clientMapper.domainToEntity(cltDomain);
+        ClientEntity clientEntity = clientConverter.domainToEntity(cltDomain);
 
         ClientEntity clientSaved = clientRepository.save(clientEntity);
 
-        return clientMapper.entityToDomain(clientSaved);
+        return clientConverter.entityToDomain(clientSaved);
     }
 
     public ClientDomain read(Long id) {
@@ -52,7 +55,7 @@ public class ClientService {
         Optional<ClientEntity> optClient = clientRepository.findById(id);
 
         if (optClient.isPresent()) {
-            ClientDomain cltDomain = clientMapper.entityToDomain(optClient.get());
+            ClientDomain cltDomain = clientConverter.entityToDomain(optClient.get());
             return cltDomain;
         }
         throw new ObjectNotFoundException("Client not found.");
@@ -70,7 +73,7 @@ public class ClientService {
                 clientEntity.setName(cltDomain.getName());
                 clientEntity.setEmail(cltDomain.getEmail());
                 ClientEntity clientUpdated = clientRepository.save(clientEntity);
-                cltDomain = clientMapper.entityToDomain(clientUpdated);
+                cltDomain = clientConverter.entityToDomain(clientUpdated);
                 return cltDomain;
             }
             throw new ObjectNotFoundException("Cliente não encontrado.");
@@ -87,7 +90,7 @@ public class ClientService {
         Optional<ClientEntity> optClient = clientRepository.findById(idUser);
         if (optClient.isPresent()) {
             productDomain = productService.consultProduct(productDomain);
-            productEntity = productMapper.domainToEntity(productDomain);
+            productEntity = productConverter.domainToEntity(productDomain);
             ClientEntity clientEntity = optClient.get();
             if (productDomain.getId() != null) {
                 Set<ProductEntity> favoriteProducts = clientEntity.getFavoriteProducts();
@@ -110,7 +113,7 @@ public class ClientService {
         if (optClient.isPresent()) {
             cltEntity = optClient.get();
             productDomain = productService.read(productDomain.getIdProduct());
-            productEntity = productMapper.domainToEntity(productDomain);
+            productEntity = productConverter.domainToEntity(productDomain);
             if(cltEntity.getFavoriteProducts().contains(productEntity)){
                 cltEntity.getFavoriteProducts().remove(productEntity);
                 clientRepository.save(cltEntity);

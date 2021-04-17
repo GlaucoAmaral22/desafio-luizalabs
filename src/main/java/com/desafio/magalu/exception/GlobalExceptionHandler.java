@@ -13,7 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.util.Date;
 
 @ControllerAdvice
-public class ExceptionConfig extends ResponseEntityExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({
             EmptyResultDataAccessException.class
@@ -21,7 +21,6 @@ public class ExceptionConfig extends ResponseEntityExceptionHandler {
     public ResponseEntity errorNotFound(Exception e) {
         return ResponseEntity.notFound().build();
     }
-
 
     @ExceptionHandler({
             ObjectNotFoundException.class
@@ -31,13 +30,17 @@ public class ExceptionConfig extends ResponseEntityExceptionHandler {
         return new ResponseEntity(erroDetails, HttpStatus.NOT_FOUND);
     }
 
-
     @ExceptionHandler(ClientAlreadyExistsException.class)
     public ResponseEntity errorClientAlreadyExists(ClientAlreadyExistsException ex) {
         ErroDetails erroDetails = new ErroDetails(new Date(), ex.getMessage(), "");
         return new ResponseEntity(erroDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ProductApiException.class)
+    public ResponseEntity errorProductApiException(ProductApiException ex) {
+        ErroDetails erroDetails = new ErroDetails(new Date(), ex.getMessage(), "");
+        return new ResponseEntity(erroDetails, HttpStatus.BAD_REQUEST);
+    }
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
@@ -46,6 +49,5 @@ public class ExceptionConfig extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity(erroDetails, HttpStatus.BAD_REQUEST);
     }
-
 
 }

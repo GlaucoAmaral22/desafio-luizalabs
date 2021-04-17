@@ -1,4 +1,4 @@
-package com.desafio.magalu.integration.apiproducts;
+package com.desafio.magalu.service.apiproducts;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

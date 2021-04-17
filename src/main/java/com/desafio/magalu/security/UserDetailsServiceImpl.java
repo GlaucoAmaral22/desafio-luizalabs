@@ -14,6 +14,10 @@ import java.util.Objects;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
+    public UserDetailsServiceImpl(UserRepository userRep) {
+        this.userRep = userRep;
+    }
+
     private UserRepository userRep;
 
     @Override

@@ -1,4 +1,4 @@
-package com.desafio.magalu.integration.apiproducts;
+package com.desafio.magalu.service.apiproducts;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;

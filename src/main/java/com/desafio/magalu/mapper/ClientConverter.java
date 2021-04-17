@@ -8,7 +8,7 @@ import com.desafio.magalu.repository.client.ClientEntity;
 import org.mapstruct.Mapper;
 
 @Mapper
-public interface ClientMapper {
+public interface ClientConverter {
 
     public ClientDomain requestToDomain(ClientRequest clientRequest);
 
