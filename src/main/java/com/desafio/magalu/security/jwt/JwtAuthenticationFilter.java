@@ -43,7 +43,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 throw new BadCredentialsException("Invalid username/password.");
             }
 
-            Authentication auth = new UsernamePasswordAuthenticationToken(email, name);
+            Authentication auth = new UsernamePasswordAuthenticationToken(email, email);
 
             return authenticationManager.authenticate(auth);
         } catch (IOException e) {

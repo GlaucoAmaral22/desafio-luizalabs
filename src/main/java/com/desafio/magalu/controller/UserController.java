@@ -66,16 +66,12 @@ public class UserController {
     @PutMapping("{id}")
     @Secured({"ROLE_USER"})
     public ResponseEntity update(@PathVariable("id") Long id,  @RequestBody UserRequest request) {
-        /*
-        ClientDomain clientDomain = userConverter.requestToDomain(request);
 
-        clientDomain = userService.update(id, clientDomain);
+        UserDomain userDomain = userConverter.requestToDomain(request);
 
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("").buildAndExpand().toUri();
+        UserDomain result = userService.update(id, userDomain);
 
-         */
-
-        return ResponseEntity.ok().location(null).build();
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("{id}")
@@ -106,5 +102,7 @@ public class UserController {
 
         return ResponseEntity.noContent().build();
     }
+
+
 
 }

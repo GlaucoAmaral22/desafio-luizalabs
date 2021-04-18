@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 
 @Entity(name = "user")
+@Table(indexes = @Index(columnList = "id"))
+
 public class UserEntity implements UserDetails {
 
     @Id

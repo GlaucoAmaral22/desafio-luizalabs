@@ -30,8 +30,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity(erroDetails, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(ClientAlreadyExistsException.class)
-    public ResponseEntity errorClientAlreadyExists(ClientAlreadyExistsException ex) {
+    @ExceptionHandler(UserEmailAlreadyExistsException.class)
+    public ResponseEntity errorClientAlreadyExists(UserEmailAlreadyExistsException ex) {
         ErroDetails erroDetails = new ErroDetails(new Date(), ex.getMessage(), "");
         return new ResponseEntity(erroDetails, HttpStatus.BAD_REQUEST);
     }

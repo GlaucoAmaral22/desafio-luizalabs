@@ -45,7 +45,7 @@ public class JwtUtil {
     public static String getEmail(String token) {
         Claims claims = getClaims(token);
         if (!isNull(claims)) {
-            return claims.getSubject();
+            return claims.get("email").toString();
         }
         return null;
     }
@@ -89,6 +89,7 @@ public class JwtUtil {
                 .setSubject(user.getUsername())
                 .setExpiration(expiration)
                 .claim("rol", roles)
+                .claim("email", user.getPassword())
                 .compact();
     }
 

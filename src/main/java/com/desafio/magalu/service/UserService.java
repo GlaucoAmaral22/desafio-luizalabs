@@ -3,11 +3,12 @@ package com.desafio.magalu.service;
 import com.desafio.magalu.domain.ClientDomain;
 import com.desafio.magalu.domain.ProductDomain;
 import com.desafio.magalu.domain.UserDomain;
-import com.desafio.magalu.exception.ClientAlreadyExistsException;
 import com.desafio.magalu.exception.ObjectNotFoundException;
 import com.desafio.magalu.exception.UserDoesNotMatchAuthorizationException;
+import com.desafio.magalu.exception.UserEmailAlreadyExistsException;
 import com.desafio.magalu.mapper.UserConverter;
 import com.desafio.magalu.mapper.ProductConverter;
+import com.desafio.magalu.repository.product.ProductEntity;
 import com.desafio.magalu.repository.user.RoleEntity;
 import com.desafio.magalu.repository.user.RoleRepository;
 import com.desafio.magalu.repository.user.UserEntity;
@@ -22,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class UserService {
@@ -45,7 +47,7 @@ public class UserService {
 
     HttpServletRequest request;
 
-    JwtUtil  jwtUtil;
+    JwtUtil jwtUtil;
 
     UserConverter userConverter = Mappers.getMapper(UserConverter.class);
 
@@ -57,7 +59,7 @@ public class UserService {
         Optional<UserEntity> optClient = userRepository.findByEmail(userDomain.getEmail());
 
         if (optClient.isPresent()) {
-            throw new ClientAlreadyExistsException("Email in use.");
+            throw new UserEmailAlreadyExistsException("Email in use.");
         }
 
         RoleEntity roleUser = roleRepository.findByName("ROLE_USER");
@@ -70,35 +72,34 @@ public class UserService {
     }
 
     public UserDomain read(Long id) {
-
+        String token = request.getHeader("Authorization");
         Optional<UserEntity> optClient = userRepository.findById(id);
-
-        if (validUsers(id, request.getHeader("Authorization") )) {
+        validUsers(id, token);
+        if (optClient.isPresent()) {
             UserDomain userDomain = userConverter.entityToDomain(optClient.get());
             return userDomain;
         }
         throw new ObjectNotFoundException("User not found.");
     }
 
-    public ClientDomain update(Long id, ClientDomain cltDomain) {
-        /*
-        Optional<ClientEntity> optClient = clientRepository.findById(id);
+    public UserDomain update(Long id, UserDomain userDomain) {
+        String token = request.getHeader("Authorization");
+        validUsers(id, token);
 
-        Optional<ClientEntity> optClientByEmail = clientRepository.findByEmail(cltDomain.getEmail());
-
-        if (optClientByEmail.isPresent() && optClientByEmail.get().getId() == id) {
-            if (optClient.isPresent()) {
-                ClientEntity clientEntity = optClient.get();
-                clientEntity.setName(cltDomain.getName());
-                clientEntity.setEmail(cltDomain.getEmail());
-                ClientEntity clientUpdated = clientRepository.save(clientEntity);
-                cltDomain = clientConverter.entityToDomain(clientUpdated);
-                return cltDomain;
-            }
-            throw new ObjectNotFoundException("Cliente não encontrado.");
+        Optional<UserEntity> optClient = userRepository.findById(id);
+        Optional<UserEntity> optClientByTryNewEmail = userRepository.findByEmail(userDomain.getEmail());
+        if (optClientByTryNewEmail.isPresent() && optClientByTryNewEmail.get().getId() != id) {
+            throw new UserEmailAlreadyExistsException("Email already in use.");
         }
-        throw new ClientAlreadyExistsException("Email já em uso.");*/
-        return null;
+        if (optClient.isPresent()) {
+            UserEntity clientEntity = optClient.get();
+            clientEntity.setName(userDomain.getName());
+            clientEntity.setEmail(userDomain.getEmail());
+            UserEntity clientUpdated = userRepository.save(clientEntity);
+            userDomain = userConverter.entityToDomain(clientUpdated);
+            return userDomain;
+        }
+        throw new ObjectNotFoundException("User not found.");
     }
 
     public void delete(Long id) {
@@ -106,46 +107,50 @@ public class UserService {
     }
 
     public void addProductToFavoriteList(Long idUser, ProductDomain productDomain) {
-        /*ProductEntity productEntity = null;
-        Optional<ClientEntity> optClient = clientRepository.findById(idUser);
+        String token = request.getHeader("Authorization");
+        validUsers(idUser, token);
+        ProductEntity productEntity = null;
+        Optional<UserEntity> optClient = userRepository.findById(idUser);
         if (optClient.isPresent()) {
             productDomain = productService.consultProduct(productDomain);
             productEntity = productConverter.domainToEntity(productDomain);
-            ClientEntity clientEntity = optClient.get();
+            UserEntity userEntity = optClient.get();
             if (productDomain.getId() != null) {
-                Set<ProductEntity> favoriteProducts = clientEntity.getFavoriteProducts();
+                Set<ProductEntity> favoriteProducts = userEntity.getFavoriteProducts();
                 if (favoriteProducts.contains(productEntity)) {
                     return;
                 }
             }
-            clientEntity.getFavoriteProducts().add(productEntity);
-            clientRepository.save(clientEntity);
+            userEntity.getFavoriteProducts().add(productEntity);
+            userRepository.save(userEntity);
             return;
         }
-        throw new ObjectNotFoundException("Cliente não encontrado.");*/
+        throw new ObjectNotFoundException("User Not Found.");
     }
 
-    public void removeProductOfFavoriteList(Long idUser, ProductDomain productDomain){
-        /*ClientEntity cltEntity = null;
+    public void removeProductOfFavoriteList(Long idUser, ProductDomain productDomain) {
+        String token = request.getHeader("Authorization");
+        validUsers(idUser, token);
+        UserEntity userEntity = null;
         ProductEntity productEntity = null;
-        Optional<ClientEntity> optClient = clientRepository.findById(idUser);
+        Optional<UserEntity> optClient = userRepository.findById(idUser);
 
         if (optClient.isPresent()) {
-            cltEntity = optClient.get();
+            userEntity = optClient.get();
             productDomain = productService.read(productDomain.getIdProduct());
             productEntity = productConverter.domainToEntity(productDomain);
-            if(cltEntity.getFavoriteProducts().contains(productEntity)){
-                cltEntity.getFavoriteProducts().remove(productEntity);
-                clientRepository.save(cltEntity);
+            if(userEntity.getFavoriteProducts().contains(productEntity)){
+                userEntity.getFavoriteProducts().remove(productEntity);
+                userRepository.save(userEntity);
                 return;
             }
             return;
         }
-        throw new ObjectNotFoundException("Cliente not found.");*/
+        throw new ObjectNotFoundException("Cliente not found.");
     }
 
 
-    public boolean validUsers(Long id,  String token){
+    public void validUsers(Long id, String token) {
 
         String email = JwtUtil.getAuthEmail();
 
@@ -153,19 +158,15 @@ public class UserService {
         Optional<UserEntity> optUserToDoAction = userRepository.findById(id);
 
 
-        if(optUserLogged.isPresent() && optUserToDoAction.isPresent()){
+        if (optUserLogged.isPresent() && optUserToDoAction.isPresent()) {
             UserDomain userLogged = userConverter.entityToDomain(optUserLogged.get());
             UserDomain userToDoAction = userConverter.entityToDomain(optUserToDoAction.get());
 
-            if(userLogged.getEmail().equals(userToDoAction.getEmail())){
-                return true;
+            if (!userLogged.getEmail().equals(userToDoAction.getEmail())) {
+                throw new UserDoesNotMatchAuthorizationException("Users does not match in action.");
             }
         }
-        throw new UserDoesNotMatchAuthorizationException("Users does not match in action.");
     }
-
-
-
 
 
 }

@@ -5,6 +5,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity(name = "product")
+@Table(indexes = @Index(columnList = "id"))
 public class ProductEntity {
 
     @Id

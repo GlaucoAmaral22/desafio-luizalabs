@@ -47,10 +47,9 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                 throw new AccessDeniedException("Acesso negado.");
             }
 
-            String login = JwtUtil.getLogin(token);
-            //TODO: ver aqui email
+            String email = JwtUtil.getEmail(token);
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(login);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
             List<GrantedAuthority> authorities = JwtUtil.getRoles(token);
 
