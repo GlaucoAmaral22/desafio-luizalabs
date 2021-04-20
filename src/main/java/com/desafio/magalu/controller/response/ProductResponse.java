@@ -1,30 +1,26 @@
-package com.desafio.magalu.domain;
+package com.desafio.magalu.controller.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Objects;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ProductResponse {
 
-public class ProductDomain {
-
-    private Long id;
-
+    @JsonProperty("id")
     private String idProduct;
 
+    @JsonProperty("price")
     private Double price;
 
+    @JsonProperty("title")
     private String title;
 
+    @JsonProperty("image")
     private String image;
 
-    public ProductDomain() {
+    public ProductResponse() {
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getIdProduct() {
         return idProduct;
@@ -56,19 +52,5 @@ public class ProductDomain {
 
     public void setImage(String image) {
         this.image = image;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ProductDomain that = (ProductDomain) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(idProduct, that.idProduct);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, idProduct);
     }
 }

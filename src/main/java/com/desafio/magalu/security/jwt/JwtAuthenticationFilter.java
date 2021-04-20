@@ -58,8 +58,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         String jwtToken = JwtUtil.createToken(user);
 
-        String json = UserDomain.create(user, jwtToken).toJson();
-        ServletUtil.write(response, HttpStatus.OK, json);
+        JwtResponse jwtResponse = new JwtResponse(jwtToken);
+
+        String jsonResponse = new ObjectMapper().writeValueAsString(jwtResponse);
+
+        ServletUtil.write(response, HttpStatus.OK, jsonResponse);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.desafio.magalu.service;
 
-import com.desafio.magalu.domain.ClientDomain;
 import com.desafio.magalu.domain.ProductDomain;
+import com.desafio.magalu.domain.RoleDomain;
 import com.desafio.magalu.domain.UserDomain;
 import com.desafio.magalu.exception.ObjectNotFoundException;
 import com.desafio.magalu.exception.UserDoesNotMatchAuthorizationException;
@@ -9,41 +9,41 @@ import com.desafio.magalu.exception.UserEmailAlreadyExistsException;
 import com.desafio.magalu.mapper.UserConverter;
 import com.desafio.magalu.mapper.ProductConverter;
 import com.desafio.magalu.repository.product.ProductEntity;
-import com.desafio.magalu.repository.user.RoleEntity;
-import com.desafio.magalu.repository.user.RoleRepository;
 import com.desafio.magalu.repository.user.UserEntity;
 import com.desafio.magalu.repository.user.UserRepository;
 import com.desafio.magalu.security.jwt.JwtUtil;
+import com.desafio.magalu.utils.PageCustom;
+import com.desafio.magalu.utils.PageModel;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class UserService {
 
 
     @Autowired
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, ProductService productService, HttpServletRequest request, JwtUtil jwtUtil) {
+    public UserService(UserRepository userRepository, ProductService productService, RoleService roleService, HttpServletRequest request, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
         this.productService = productService;
+        this.roleService = roleService;
         this.request = request;
         this.jwtUtil = jwtUtil;
     }
 
     UserRepository userRepository;
 
-    //TODO: retirar role daqui e colocar na RoleService e fazer a logica para criar a role de usuário
-    RoleRepository roleRepository;
-
     ProductService productService;
+
+    RoleService roleService;
 
     HttpServletRequest request;
 
@@ -57,21 +57,24 @@ public class UserService {
     public UserDomain create(UserDomain userDomain) {
 
         Optional<UserEntity> optClient = userRepository.findByEmail(userDomain.getEmail());
-
         if (optClient.isPresent()) {
             throw new UserEmailAlreadyExistsException("Email in use.");
         }
+        RoleDomain roleUser = roleService.read("ROLE_USER");
 
-        RoleEntity roleUser = roleRepository.findByName("ROLE_USER");
+        //TODO VER A PARTE DE PERMISSOES QUE JA TENHO
+        userDomain.setRoles(new ArrayList<>(Arrays.asList(roleUser)));
+
         UserEntity userEntity = userConverter.domainToEntity(userDomain);
-        userEntity.setRoles(new ArrayList<>(Arrays.asList(roleUser)));
 
         UserEntity userSaved = userRepository.save(userEntity);
 
         return userConverter.entityToDomain(userSaved);
     }
 
+    @Cacheable(cacheNames = "UserById", key = "#id")
     public UserDomain read(Long id) {
+        System.out.println("REDIS FUNCIONANDO OK");
         String token = request.getHeader("Authorization");
         Optional<UserEntity> optClient = userRepository.findById(id);
         validUsers(id, token);
@@ -82,6 +85,7 @@ public class UserService {
         throw new ObjectNotFoundException("User not found.");
     }
 
+    @CachePut(cacheNames = {"CarroById"}, key = "#id")
     public UserDomain update(Long id, UserDomain userDomain) {
         String token = request.getHeader("Authorization");
         validUsers(id, token);
@@ -102,19 +106,43 @@ public class UserService {
         throw new ObjectNotFoundException("User not found.");
     }
 
+    @CacheEvict(cacheNames = "UserById", key = "#id")
     public void delete(Long id) {
         userRepository.deleteById(id);
+    }
+
+
+
+    @Cacheable(cacheNames = {"Page"}, key="{#idUser, #pageable.getPageSize, #pageable.getPageNumber}")
+    public PageCustom getAllFavorites(Long idUser, Pageable pageable) {
+        String token = request.getHeader("Authorization");
+        validUsers(idUser, token);
+
+        Optional<UserEntity> optUser = userRepository.findById(idUser);
+
+        if (optUser.isPresent()) {
+
+            Set<ProductEntity> favorites = optUser.get().getFavoriteProducts();
+
+            PageModel pageModel = new PageModel(new ArrayList<ProductEntity>(favorites), pageable.getPageSize(), pageable.getPageNumber());
+
+            return pageModel.getPagination();
+        }
+        throw new ObjectNotFoundException("User not found.");
+
     }
 
     public void addProductToFavoriteList(Long idUser, ProductDomain productDomain) {
         String token = request.getHeader("Authorization");
         validUsers(idUser, token);
         ProductEntity productEntity = null;
-        Optional<UserEntity> optClient = userRepository.findById(idUser);
-        if (optClient.isPresent()) {
+        Optional<UserEntity> optUser = userRepository.findById(idUser);
+        if (optUser.isPresent()) {
             productDomain = productService.consultProduct(productDomain);
+            //LEIO, DEPOIS COLOCO PRA DOMAIN, SETO NO OBJETO USER E SALVO
+
             productEntity = productConverter.domainToEntity(productDomain);
-            UserEntity userEntity = optClient.get();
+            UserEntity userEntity = optUser.get();
             if (productDomain.getId() != null) {
                 Set<ProductEntity> favoriteProducts = userEntity.getFavoriteProducts();
                 if (favoriteProducts.contains(productEntity)) {
@@ -133,13 +161,13 @@ public class UserService {
         validUsers(idUser, token);
         UserEntity userEntity = null;
         ProductEntity productEntity = null;
-        Optional<UserEntity> optClient = userRepository.findById(idUser);
+        Optional<UserEntity> optUser = userRepository.findById(idUser);
 
-        if (optClient.isPresent()) {
-            userEntity = optClient.get();
+        if (optUser.isPresent()) {
+            userEntity = optUser.get();
             productDomain = productService.read(productDomain.getIdProduct());
             productEntity = productConverter.domainToEntity(productDomain);
-            if(userEntity.getFavoriteProducts().contains(productEntity)){
+            if (userEntity.getFavoriteProducts().contains(productEntity)) {
                 userEntity.getFavoriteProducts().remove(productEntity);
                 userRepository.save(userEntity);
                 return;
@@ -149,23 +177,13 @@ public class UserService {
         throw new ObjectNotFoundException("Cliente not found.");
     }
 
-
     public void validUsers(Long id, String token) {
+        Long idUserLogged = Long.parseLong(JwtUtil.getId(token));
 
-        String email = JwtUtil.getAuthEmail();
-
-        Optional<UserEntity> optUserLogged = userRepository.findByEmail(email);
-        Optional<UserEntity> optUserToDoAction = userRepository.findById(id);
-
-
-        if (optUserLogged.isPresent() && optUserToDoAction.isPresent()) {
-            UserDomain userLogged = userConverter.entityToDomain(optUserLogged.get());
-            UserDomain userToDoAction = userConverter.entityToDomain(optUserToDoAction.get());
-
-            if (!userLogged.getEmail().equals(userToDoAction.getEmail())) {
-                throw new UserDoesNotMatchAuthorizationException("Users does not match in action.");
-            }
+        if (id != idUserLogged) {
+            throw new UserDoesNotMatchAuthorizationException("Users does not match in action.");
         }
+
     }
 
 

@@ -7,9 +7,10 @@ import com.desafio.magalu.mapper.ProductConverter;
 import com.desafio.magalu.repository.product.ProductEntity;
 import com.desafio.magalu.repository.product.ProductRepository;
 import com.desafio.magalu.service.apiproducts.ProductClient;
-import com.desafio.magalu.service.apiproducts.ProductReponse;
+import com.desafio.magalu.service.apiproducts.ProductReponseApi;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -28,10 +29,26 @@ public class ProductService {
 
     ProductClient productClient;
 
+
+    //TODO ALTERAR CACHE AQUI
+    public ProductDomain read(String idProduct){
+
+        //TODO AQUI ESTOU INDO PELO ID PRODUCT
+        Optional<ProductEntity> optPrd = productRepository.findByIdProduct(idProduct);
+
+        if(optPrd.isPresent()){
+            return Mappers.getMapper(ProductConverter.class).entityToDomain(optPrd.get());
+        }
+        throw new ObjectNotFoundException("Product Not Found.");
+    }
+
+    //@Cacheable(cacheNames = "UserById", key = "#id") TODO ALTERAR CACHE AQUI
     public ProductDomain consultProduct(ProductDomain productDomain){
+
+        //TODO AQUI ESTOU INDO PELO ID PRODUCT
         String idProduct = productDomain.getIdProduct();
 
-        ProductReponse productReponse = null;
+        ProductReponseApi productReponseApi = null;
 
         Optional<ProductEntity> optProd = productRepository.findByIdProduct(productDomain.getIdProduct());
 
@@ -40,23 +57,15 @@ public class ProductService {
         }
 
         try{
-            productReponse = productClient.detailProduct(idProduct).getBody();
-            productDomain = Mappers.getMapper(ProductConverter.class).responseToDomain(productReponse);
+            productReponseApi = productClient.detailProduct(idProduct).getBody();
+            productDomain = Mappers.getMapper(ProductConverter.class).responseToDomain(productReponseApi);
         }catch (Exception e){
             throw new ProductApiException("Error contacting products api.");
         }
         return productDomain;
     }
 
-    public ProductDomain read(String idProduct){
 
-        Optional<ProductEntity> optPrd = productRepository.findByIdProduct(idProduct);
-
-        if(optPrd.isPresent()){
-            return Mappers.getMapper(ProductConverter.class).entityToDomain(optPrd.get());
-        }
-        throw new ObjectNotFoundException("Product Not Found.");
-    }
 
 
 }

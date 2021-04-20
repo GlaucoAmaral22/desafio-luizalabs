@@ -1,17 +1,15 @@
 package com.desafio.magalu.controller.response;
 
-import com.desafio.magalu.domain.ProductDomain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Set;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserResponse {
 
     @JsonProperty("id")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long id;
 
     @JsonProperty("name")
@@ -19,9 +17,6 @@ public class UserResponse {
 
     @JsonProperty("email")
     private String email;
-
-    @JsonProperty("favorites")
-    private Set<ProductDomain> favoriteProducts;
 
     public UserResponse() {
     }
@@ -50,11 +45,4 @@ public class UserResponse {
         this.email = email;
     }
 
-    public Set<ProductDomain> getFavoriteProducts() {
-        return favoriteProducts;
-    }
-
-    public void setFavoriteProducts(Set<ProductDomain> favoriteProducts) {
-        this.favoriteProducts = favoriteProducts;
-    }
 }

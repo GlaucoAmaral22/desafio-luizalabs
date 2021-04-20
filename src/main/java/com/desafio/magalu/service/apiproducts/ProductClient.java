@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface ProductClient {
 
     @GetMapping("{idProduct}/")
-    public ResponseEntity<ProductReponse> detailProduct(@PathVariable("idProduct") String idProduct);
+    public ResponseEntity<ProductReponseApi> detailProduct(@PathVariable("idProduct") String idProduct);
 
 }

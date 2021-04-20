@@ -8,9 +8,12 @@ import com.desafio.magalu.domain.ProductDomain;
 import com.desafio.magalu.domain.UserDomain;
 import com.desafio.magalu.mapper.UserConverter;
 import com.desafio.magalu.mapper.ProductConverter;
+import com.desafio.magalu.repository.product.ProductEntity;
 import com.desafio.magalu.service.UserService;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -23,20 +26,16 @@ import java.net.URI;
 @RequestMapping("/api/client/")
 public class UserController {
 
-
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-
 
     private UserService userService;
 
     UserConverter userConverter = Mappers.getMapper(UserConverter.class);
 
     ProductConverter productConverter = Mappers.getMapper(ProductConverter.class);
-
 
     @PostMapping()
     public ResponseEntity create(@Valid @RequestBody UserRequest request){
@@ -81,6 +80,15 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+
+    @GetMapping("{id}/favorite")
+    @Secured({"ROLE_USER"})
+    public ResponseEntity allProducts(@PathVariable("id") Long idUser, Pageable pageable){
+
+        return ResponseEntity.ok(userService.getAllFavorites(idUser, pageable));
+
+    }
+
     @PostMapping("{id}/favorite")
     @Secured({"ROLE_USER"})
     public ResponseEntity addProduct(@PathVariable("id") Long idUser, @RequestBody ProductRequest request){
@@ -102,7 +110,5 @@ public class UserController {
 
         return ResponseEntity.noContent().build();
     }
-
-
 
 }

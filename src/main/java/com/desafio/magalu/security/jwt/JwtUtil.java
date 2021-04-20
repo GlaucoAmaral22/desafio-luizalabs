@@ -1,5 +1,6 @@
 package com.desafio.magalu.security.jwt;
 
+import com.desafio.magalu.repository.user.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -50,6 +51,14 @@ public class JwtUtil {
         return null;
     }
 
+    public static String getId(String token) {
+        Claims claims = getClaims(token);
+        if (!isNull(claims)) {
+            return claims.get("id").toString();
+        }
+        return null;
+    }
+
 
     public static List<GrantedAuthority> getRoles(String token) {
         Claims claims = getClaims(token);
@@ -84,12 +93,17 @@ public class JwtUtil {
         int time = 300000;
         Date expiration = new Date(System.currentTimeMillis() + time);
 
+        UserEntity userEntity = (UserEntity) user;
+
+        Long id = userEntity.getId();
+
         return Jwts.builder()
                 .signWith(Keys.hmacShaKeyFor(signingKey), SignatureAlgorithm.HS512)
                 .setSubject(user.getUsername())
                 .setExpiration(expiration)
                 .claim("rol", roles)
                 .claim("email", user.getPassword())
+                .claim("id", id)
                 .compact();
     }
 

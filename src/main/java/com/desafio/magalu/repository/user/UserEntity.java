@@ -11,7 +11,6 @@ import java.util.Set;
 
 @Entity(name = "user")
 @Table(indexes = @Index(columnList = "id"))
-
 public class UserEntity implements UserDetails {
 
     @Id
@@ -21,18 +20,19 @@ public class UserEntity implements UserDetails {
     private String email;
 
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")})
     private List<RoleEntity> roles;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade=CascadeType.ALL)
     @JoinTable(
             name = "user_products",
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "product_id", referencedColumnName = "id")})
+    @OrderBy("id ASC")
     private Set<ProductEntity> favoriteProducts;
 
 
