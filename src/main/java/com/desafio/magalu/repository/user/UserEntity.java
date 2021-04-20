@@ -1,6 +1,5 @@
 package com.desafio.magalu.repository.user;
 
-import com.desafio.magalu.repository.product.ProductEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -26,14 +25,6 @@ public class UserEntity implements UserDetails {
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")})
     private List<RoleEntity> roles;
-
-    @ManyToMany(fetch = FetchType.LAZY, cascade=CascadeType.ALL)
-    @JoinTable(
-            name = "user_products",
-            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "product_id", referencedColumnName = "id")})
-    @OrderBy("id ASC")
-    private Set<ProductEntity> favoriteProducts;
 
 
     public UserEntity() {
@@ -61,14 +52,6 @@ public class UserEntity implements UserDetails {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public Set<ProductEntity> getFavoriteProducts() {
-        return favoriteProducts;
-    }
-
-    public void setFavoriteProducts(Set<ProductEntity> favoriteProducts) {
-        this.favoriteProducts = favoriteProducts;
     }
 
     public List<RoleEntity> getRoles() {

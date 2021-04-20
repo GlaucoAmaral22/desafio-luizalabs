@@ -2,12 +2,14 @@ package com.desafio.magalu.controller.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 public class ProductResponse {
 
     @JsonProperty("id")
-    private String idProduct;
+    private String id;
 
     @JsonProperty("price")
     private Double price;
@@ -18,39 +20,4 @@ public class ProductResponse {
     @JsonProperty("image")
     private String image;
 
-    public ProductResponse() {
-    }
-
-
-    public String getIdProduct() {
-        return idProduct;
-    }
-
-    public void setIdProduct(String idProduct) {
-        this.idProduct = idProduct;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
 }

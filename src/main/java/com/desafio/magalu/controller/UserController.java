@@ -3,17 +3,15 @@ package com.desafio.magalu.controller;
 import com.desafio.magalu.controller.request.UserRequest;
 import com.desafio.magalu.controller.request.ProductRequest;
 import com.desafio.magalu.controller.response.UserResponse;
-import com.desafio.magalu.domain.ClientDomain;
 import com.desafio.magalu.domain.ProductDomain;
 import com.desafio.magalu.domain.UserDomain;
 import com.desafio.magalu.mapper.UserConverter;
 import com.desafio.magalu.mapper.ProductConverter;
-import com.desafio.magalu.repository.product.ProductEntity;
 import com.desafio.magalu.service.UserService;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +34,9 @@ public class UserController {
     UserConverter userConverter = Mappers.getMapper(UserConverter.class);
 
     ProductConverter productConverter = Mappers.getMapper(ProductConverter.class);
+
+    @Autowired
+    RedisTemplate redisTemplate;
 
     @PostMapping()
     public ResponseEntity create(@Valid @RequestBody UserRequest request){
@@ -80,7 +81,6 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-
     @GetMapping("{id}/favorite")
     @Secured({"ROLE_USER"})
     public ResponseEntity allProducts(@PathVariable("id") Long idUser, Pageable pageable){
@@ -92,7 +92,6 @@ public class UserController {
     @PostMapping("{id}/favorite")
     @Secured({"ROLE_USER"})
     public ResponseEntity addProduct(@PathVariable("id") Long idUser, @RequestBody ProductRequest request){
-
         ProductDomain productDomain = productConverter.requestToDomain(request);
 
         userService.addProductToFavoriteList(idUser, productDomain);
@@ -110,5 +109,6 @@ public class UserController {
 
         return ResponseEntity.noContent().build();
     }
+
 
 }

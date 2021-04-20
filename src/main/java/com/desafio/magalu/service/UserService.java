@@ -8,7 +8,6 @@ import com.desafio.magalu.exception.UserDoesNotMatchAuthorizationException;
 import com.desafio.magalu.exception.UserEmailAlreadyExistsException;
 import com.desafio.magalu.mapper.UserConverter;
 import com.desafio.magalu.mapper.ProductConverter;
-import com.desafio.magalu.repository.product.ProductEntity;
 import com.desafio.magalu.repository.user.UserEntity;
 import com.desafio.magalu.repository.user.UserRepository;
 import com.desafio.magalu.security.jwt.JwtUtil;
@@ -20,21 +19,24 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService {
 
 
     @Autowired
-    public UserService(UserRepository userRepository, ProductService productService, RoleService roleService, HttpServletRequest request, JwtUtil jwtUtil) {
+    public UserService(UserRepository userRepository, ProductService productService, RoleService roleService, HttpServletRequest request, JwtUtil jwtUtil, RedisTemplate redisTemplate) {
         this.userRepository = userRepository;
         this.productService = productService;
         this.roleService = roleService;
+        this.redisTemplate = redisTemplate;
         this.request = request;
         this.jwtUtil = jwtUtil;
     }
@@ -49,6 +51,8 @@ public class UserService {
 
     JwtUtil jwtUtil;
 
+    RedisTemplate redisTemplate;
+
     UserConverter userConverter = Mappers.getMapper(UserConverter.class);
 
     ProductConverter productConverter = Mappers.getMapper(ProductConverter.class);
@@ -62,7 +66,6 @@ public class UserService {
         }
         RoleDomain roleUser = roleService.read("ROLE_USER");
 
-        //TODO VER A PARTE DE PERMISSOES QUE JA TENHO
         userDomain.setRoles(new ArrayList<>(Arrays.asList(roleUser)));
 
         UserEntity userEntity = userConverter.domainToEntity(userDomain);
@@ -74,7 +77,6 @@ public class UserService {
 
     @Cacheable(cacheNames = "UserById", key = "#id")
     public UserDomain read(Long id) {
-        System.out.println("REDIS FUNCIONANDO OK");
         String token = request.getHeader("Authorization");
         Optional<UserEntity> optClient = userRepository.findById(id);
         validUsers(id, token);
@@ -112,8 +114,6 @@ public class UserService {
     }
 
 
-
-    @Cacheable(cacheNames = {"Page"}, key="{#idUser, #pageable.getPageSize, #pageable.getPageNumber}")
     public PageCustom getAllFavorites(Long idUser, Pageable pageable) {
         String token = request.getHeader("Authorization");
         validUsers(idUser, token);
@@ -122,9 +122,18 @@ public class UserService {
 
         if (optUser.isPresent()) {
 
-            Set<ProductEntity> favorites = optUser.get().getFavoriteProducts();
+            Map<String, ProductDomain> favoriteList = (Map<String, ProductDomain>) redisTemplate.opsForValue().get("FAVORITE_LIST_" + idUser);
 
-            PageModel pageModel = new PageModel(new ArrayList<ProductEntity>(favorites), pageable.getPageSize(), pageable.getPageNumber());
+            ArrayList<ProductDomain> favorites = null;
+
+            if (favoriteList != null) {
+                favorites = new ArrayList<ProductDomain>(favoriteList.values());
+                Collections.sort(favorites);
+            }else{
+                favorites = new ArrayList<>();
+            }
+
+            PageModel pageModel = new PageModel(favorites, pageable.getPageSize(), pageable.getPageNumber());
 
             return pageModel.getPagination();
         }
@@ -135,22 +144,21 @@ public class UserService {
     public void addProductToFavoriteList(Long idUser, ProductDomain productDomain) {
         String token = request.getHeader("Authorization");
         validUsers(idUser, token);
-        ProductEntity productEntity = null;
         Optional<UserEntity> optUser = userRepository.findById(idUser);
         if (optUser.isPresent()) {
-            productDomain = productService.consultProduct(productDomain);
-            //LEIO, DEPOIS COLOCO PRA DOMAIN, SETO NO OBJETO USER E SALVO
 
-            productEntity = productConverter.domainToEntity(productDomain);
-            UserEntity userEntity = optUser.get();
-            if (productDomain.getId() != null) {
-                Set<ProductEntity> favoriteProducts = userEntity.getFavoriteProducts();
-                if (favoriteProducts.contains(productEntity)) {
-                    return;
-                }
+            productDomain = productService.read(productDomain.getId());
+
+            Map<String, ProductDomain> favoriteList = (Map<String, ProductDomain>) redisTemplate.opsForValue().get("FAVORITE_LIST_" + idUser);
+
+            if (favoriteList == null) {
+                favoriteList = new HashMap();
+                favoriteList.put(productDomain.getId(), productDomain);
+            } else {
+                favoriteList.put(productDomain.getId(), productDomain);
             }
-            userEntity.getFavoriteProducts().add(productEntity);
-            userRepository.save(userEntity);
+
+            redisTemplate.opsForValue().set("FAVORITE_LIST_" + idUser, favoriteList, 18, TimeUnit.HOURS);
             return;
         }
         throw new ObjectNotFoundException("User Not Found.");
@@ -160,16 +168,14 @@ public class UserService {
         String token = request.getHeader("Authorization");
         validUsers(idUser, token);
         UserEntity userEntity = null;
-        ProductEntity productEntity = null;
         Optional<UserEntity> optUser = userRepository.findById(idUser);
 
         if (optUser.isPresent()) {
             userEntity = optUser.get();
-            productDomain = productService.read(productDomain.getIdProduct());
-            productEntity = productConverter.domainToEntity(productDomain);
-            if (userEntity.getFavoriteProducts().contains(productEntity)) {
-                userEntity.getFavoriteProducts().remove(productEntity);
-                userRepository.save(userEntity);
+            Map<String, ProductDomain> favoriteList = (Map<String, ProductDomain>) redisTemplate.opsForValue().get("FAVORITE_LIST_" + idUser);
+            if (favoriteList != null) {
+                favoriteList.remove(productDomain.getId());
+                redisTemplate.opsForValue().set("FAVORITE_LIST_" + idUser, favoriteList, 18, TimeUnit.HOURS);
                 return;
             }
             return;

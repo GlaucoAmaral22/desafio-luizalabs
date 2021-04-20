@@ -1,13 +1,13 @@
 package com.desafio.magalu.domain;
 
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class ProductDomain {
+public class ProductDomain implements Serializable, Comparable {
 
-    private Long id;
 
-    private String idProduct;
+    private String id;
 
     private Double price;
 
@@ -18,20 +18,12 @@ public class ProductDomain {
     public ProductDomain() {
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
-    }
-
-    public String getIdProduct() {
-        return idProduct;
-    }
-
-    public void setIdProduct(String idProduct) {
-        this.idProduct = idProduct;
     }
 
     public Double getPrice() {
@@ -58,17 +50,10 @@ public class ProductDomain {
         this.image = image;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ProductDomain that = (ProductDomain) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(idProduct, that.idProduct);
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, idProduct);
+
+    public int compareTo(Object o) {
+        ProductDomain prod = (ProductDomain) o;
+        return getId().compareTo(prod.getId());
     }
 }
