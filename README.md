@@ -32,7 +32,7 @@ Este desafio consiste na criação de uma API para gerenciamento de clientes e l
 SmartyPants converts ASCII punctuation characters into "smart" typographic punctuation HTML entities. For example:
 
 |     Ação       | Endpoint                      |Codigo Response |
-|----------------|-------------------------------|---------------| ---- |
+|----------------|-------------------------------|---------------|
 |Criar usuário(POST)   | /api/client/          |200            |
 |Login - Buscar Token (GET)          |/api/client/login/          |200            |
 |Leitura de um Cliente (GET)|/api/client/{idCliente}|200|
