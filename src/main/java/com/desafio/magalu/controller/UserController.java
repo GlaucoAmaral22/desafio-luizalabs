@@ -75,7 +75,7 @@ public class UserController {
     }
 
     @DeleteMapping("{id}")
-    @Secured({"ROLE_ADMIN"})
+    @Secured({"ROLE_USER"})
     public ResponseEntity delete(@PathVariable("id") Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();

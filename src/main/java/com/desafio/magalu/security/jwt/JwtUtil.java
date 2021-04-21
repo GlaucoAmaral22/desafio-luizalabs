@@ -90,7 +90,7 @@ public class JwtUtil {
 
         byte[] signingKey = JwtUtil.JWT_SECRET.getBytes();
 
-        int time = 300000;
+        long time = 54000000l;
         Date expiration = new Date(System.currentTimeMillis() + time);
 
         UserEntity userEntity = (UserEntity) user;
