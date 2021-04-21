@@ -27,7 +27,7 @@ Este desafio consiste na criação de uma API para gerenciamento de clientes e l
 - Autenticação e autorização com token JWT válido por 30 minutos. 
 
 
-# Respostas
+# Codigos de Respostas esperados ao chamar os endpoints
 
 |     Ação       | Endpoint                      |Codigo Response |
 |----------------|-------------------------------|---------------|
