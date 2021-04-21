@@ -18,7 +18,7 @@ Este desafio consiste na criação de uma API para gerenciamento de clientes e l
 
 ## Decisões
 
-- Utilização de Cache dos produtos somente por 18 horas devido ha possíveis diferenças de preços.
+- Utilização de Cache dos produtos somente por 18 horas devido ha possíveis diferenças de preços ao longo dos dias.
 - Para performance foram utilizados:
 	- Indexação nas tabelas cliente e product.
 	- Utilização de Cache Redis.
