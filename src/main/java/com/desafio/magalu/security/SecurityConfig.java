@@ -48,10 +48,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilter(new JwtAuthenticationFilter(authManager))
                 .addFilter(new JwtAuthorizationFilter(authManager, userDetailsService))
                 .exceptionHandling()
-                .accessDeniedHandler(accesDeniedHandler)//os erros de nao puder ser autenticado cairão para AccessDeniedHandler
-                .authenticationEntryPoint(unauthorizedHandler)//os erros de não autorizados cairão para dentro da UnauthorizedHandler
+                .accessDeniedHandler(accesDeniedHandler)
+                .authenticationEntryPoint(unauthorizedHandler)
                 .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); //desliga os cookies da sessão
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
     @Override

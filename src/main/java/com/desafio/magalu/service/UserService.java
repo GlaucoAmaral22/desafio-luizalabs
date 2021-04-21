@@ -41,21 +41,21 @@ public class UserService {
         this.jwtUtil = jwtUtil;
     }
 
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
-    ProductService productService;
+    private ProductService productService;
 
-    RoleService roleService;
+    private RoleService roleService;
 
-    HttpServletRequest request;
+    private HttpServletRequest request;
 
-    JwtUtil jwtUtil;
+    private JwtUtil jwtUtil;
 
-    RedisTemplate redisTemplate;
+    private RedisTemplate redisTemplate;
 
-    UserConverter userConverter = Mappers.getMapper(UserConverter.class);
+    private UserConverter userConverter = Mappers.getMapper(UserConverter.class);
 
-    ProductConverter productConverter = Mappers.getMapper(ProductConverter.class);
+    private ProductConverter productConverter = Mappers.getMapper(ProductConverter.class);
 
 
     public UserDomain create(UserDomain userDomain) {
@@ -87,7 +87,7 @@ public class UserService {
         throw new ObjectNotFoundException("User not found.");
     }
 
-    @CachePut(cacheNames = {"CarroById"}, key = "#id")
+    @CachePut(cacheNames = {"UserById"}, key = "#id")
     public UserDomain update(Long id, UserDomain userDomain) {
         String token = request.getHeader("Authorization");
         validUsers(id, token);

@@ -2,10 +2,8 @@ package com.desafio.magalu.domain;
 
 
 import java.io.Serializable;
-import java.util.Objects;
 
 public class ProductDomain implements Serializable, Comparable {
-
 
     private String id;
 

@@ -25,8 +25,9 @@ import java.net.URI;
 public class UserController {
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, RedisTemplate redisTemplate) {
         this.userService = userService;
+        this.redisTemplate = redisTemplate;
     }
 
     private UserService userService;
@@ -35,11 +36,10 @@ public class UserController {
 
     ProductConverter productConverter = Mappers.getMapper(ProductConverter.class);
 
-    @Autowired
     RedisTemplate redisTemplate;
 
     @PostMapping()
-    public ResponseEntity create(@Valid @RequestBody UserRequest request){
+    public ResponseEntity create(@Valid @RequestBody UserRequest request) {
 
         UserDomain userDomain = userConverter.requestToDomain(request);
 
@@ -53,7 +53,7 @@ public class UserController {
 
     @GetMapping("{id}")
     @Secured({"ROLE_USER"})
-    public ResponseEntity read(@PathVariable("id") Long id){
+    public ResponseEntity read(@PathVariable("id") Long id) {
 
         UserDomain clientDomain = userService.read(id);
 
@@ -65,7 +65,7 @@ public class UserController {
 
     @PutMapping("{id}")
     @Secured({"ROLE_USER"})
-    public ResponseEntity update(@PathVariable("id") Long id,  @RequestBody UserRequest request) {
+    public ResponseEntity update(@PathVariable("id") Long id, @RequestBody UserRequest request) {
 
         UserDomain userDomain = userConverter.requestToDomain(request);
 
@@ -76,14 +76,14 @@ public class UserController {
 
     @DeleteMapping("{id}")
     @Secured({"ROLE_ADMIN"})
-    public ResponseEntity delete(@PathVariable("id") Long id){
+    public ResponseEntity delete(@PathVariable("id") Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("{id}/favorite")
     @Secured({"ROLE_USER"})
-    public ResponseEntity allProducts(@PathVariable("id") Long idUser, Pageable pageable){
+    public ResponseEntity allProducts(@PathVariable("id") Long idUser, Pageable pageable) {
 
         return ResponseEntity.ok(userService.getAllFavorites(idUser, pageable));
 
@@ -91,7 +91,7 @@ public class UserController {
 
     @PostMapping("{id}/favorite")
     @Secured({"ROLE_USER"})
-    public ResponseEntity addProduct(@PathVariable("id") Long idUser, @RequestBody ProductRequest request){
+    public ResponseEntity addProduct(@PathVariable("id") Long idUser, @RequestBody ProductRequest request) {
         ProductDomain productDomain = productConverter.requestToDomain(request);
 
         userService.addProductToFavoriteList(idUser, productDomain);
@@ -101,7 +101,7 @@ public class UserController {
 
     @DeleteMapping("{id}/favorite")
     @Secured({"ROLE_USER"})
-    public ResponseEntity deleteProduct(@PathVariable("id") Long idUser, @RequestBody ProductRequest request){
+    public ResponseEntity deleteProduct(@PathVariable("id") Long idUser, @RequestBody ProductRequest request) {
 
         ProductDomain productDomain = productConverter.requestToDomain(request);
 

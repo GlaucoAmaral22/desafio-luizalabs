@@ -15,13 +15,13 @@ import java.util.Optional;
 @Service
 public class RoleService {
 
-
+    @Autowired
     public RoleService(RoleRepository roleRepository) {
         this.roleRepository = roleRepository;
     }
 
-    @Autowired
-    RoleRepository roleRepository;
+
+    private  RoleRepository roleRepository;
 
     RoleConverter roleConverter  = Mappers.getMapper(RoleConverter.class); ;
 
