@@ -40,7 +40,7 @@ public class PageModel implements Serializable {
 
     public PageCustom getPagination() {
 
-         List content = this.getObjects(pageNumber);
+        List content = this.getObjects(pageNumber);
 
         PageCustom pageCustom = new PageCustom(content, pageNumber, pageSize);
 
@@ -50,7 +50,7 @@ public class PageModel implements Serializable {
 
 
     public List getObjects(int page) {
-        if(pageNumber > totalPages){
+        if (pageNumber > totalPages) {
             return null;
         }
 
@@ -68,7 +68,6 @@ public class PageModel implements Serializable {
         }
         return objects;
     }
-
 
 
     public List getList() {

@@ -11,16 +11,16 @@ public class ProductRequest {
 
     @JsonProperty("id")
     @NotBlank(message = "Invalid Id Product.")
-    private String id;
+    private String idProduct;
 
     public ProductRequest() {
     }
 
-    public String getId() {
-        return id;
+    public String getIdProduct() {
+        return idProduct;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setIdProduct(String idProduct) {
+        this.idProduct = idProduct;
     }
 }

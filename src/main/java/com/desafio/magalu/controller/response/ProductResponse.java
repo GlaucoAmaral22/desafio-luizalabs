@@ -4,20 +4,22 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Data
-public class ProductResponse {
+public class ProductResponse implements Serializable {
 
     @JsonProperty("id")
-    private String id;
+    private String idProduct;
 
-    @JsonProperty("price")
-    private Double price;
+    public ProductResponse() {
+    }
 
-    @JsonProperty("title")
-    private String title;
+    public String getIdProduct() {
+        return idProduct;
+    }
 
-    @JsonProperty("image")
-    private String image;
-
+    public void setIdProduct(String idProduct) {
+        this.idProduct = idProduct;
+    }
 }

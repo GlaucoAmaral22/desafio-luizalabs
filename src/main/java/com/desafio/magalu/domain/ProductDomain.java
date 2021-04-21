@@ -5,50 +5,28 @@ import java.io.Serializable;
 
 public class ProductDomain implements Serializable, Comparable {
 
-    private String id;
+    private Long id;
 
-    private Double price;
-
-    private String title;
-
-    private String image;
+    private String idProduct;
 
     public ProductDomain() {
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public Double getPrice() {
-        return price;
+    public String getIdProduct() {
+        return idProduct;
     }
 
-    public void setPrice(Double price) {
-        this.price = price;
+    public void setIdProduct(String idProduct) {
+        this.idProduct = idProduct;
     }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-
 
     public int compareTo(Object o) {
         ProductDomain prod = (ProductDomain) o;
